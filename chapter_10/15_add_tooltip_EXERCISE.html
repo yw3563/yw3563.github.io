@@ -5,7 +5,7 @@
 		<title>D3: Time axis, prettier</title>
 		<script type="text/javascript" src="../d3.js"></script>
 		<style type="text/css">
-			/* No style rules here yet */		
+			/* No style rules here yet */
 		</style>
 	</head>
 	<body>
@@ -16,12 +16,12 @@
             //there are 2 bugs - both in line 42-43 - starting at d3.csv("..
             //fix the file path and the csv function so that the data is loaded and displays correctly
             //Then implement a tooltip of your choice for the circles on rollover.
-            
+
 			//Width and height
 			var w = 600;
 			var h = 400;
 			var padding = 40;
-			
+
 			var dataset, xScale, yScale, xAxis, yAxis;  //Empty, for now
 
 			//For converting strings to Dates
@@ -39,8 +39,8 @@
 			}
 
 			//Load in the data
-			d3.csv("../time_scale_data.csv", rowConverter)
-            .then(function(d) {
+			d3.csv("data/time_scale_data.csv", rowConverter)
+            .then(function(data) {
 				//Copy data into global dataset
 				dataset = data;
 
@@ -98,9 +98,10 @@
 				   .attr("stroke", "#ddd")
 				   .attr("stroke-width", 1);
 
-                   //TODO: 
+                   //TODO:
                    //define a tooltip
                    //call it
+
 
 				//Generate circles last, so they appear in front
 				svg.selectAll("circle")
@@ -115,20 +116,36 @@
 				   })
 				   .attr("r", 5)
                    .on("mouseover",function(d,i){
+										var xPosition = parseFloat(d3.select(this).attr("cx"))+ 20;
+					 					var yPosition = parseFloat(d3.select(this).attr("cy"))+ 14;
+
+					 					//Create the tooltip label
+					 					svg.append("text")
+					 					   .attr("id", "tooltip")
+					 					   .attr("cx", xPosition)
+					 					   .attr("cy", yPosition)
+					 					   .attr("text-anchor", "middle")
+					 					   .attr("font-family", "sans-serif")
+					 					   .attr("font-size", "28px")
+					 					   .attr("font-weight", "bold")
+					 					   .attr("fill", "black")
+					 					   .text(d)
                        d3.select(this).attr("fill","red")
+											 d3.select("#tooltip").classed("hidden", false);
                        //TODO: show tooltip here
                    })
                    .on("mouseout",function(d,i){
                        d3.select(this).attr("fill","black")
+											 d3.select("#tooltip").remove();
                        //TODO: hide tooltip here
                    });
-	   			
+
 	   			//Create X axis
 	   			svg.append("g")
 	   				.attr("class", "axis")
 	   				.attr("transform", "translate(0," + (h - padding) + ")")
 	   				.call(xAxis);
-	   			
+
 	   			//Create Y axis
 	   			svg.append("g")
 	   				.attr("class", "axis")
@@ -136,7 +153,7 @@
 	   				.call(yAxis);
 
 			});
-			
+
 		</script>
 	</body>
 </html>
