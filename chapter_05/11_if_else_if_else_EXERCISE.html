@@ -33,7 +33,8 @@
 					return d;
 				})
 				.style("color", function(d) {
-										return "red"
+                    //CHANGE 1 - I commented out the line below returning the color red, because this return statement will exit the code and stop after turning everything red.
+										//return "red"
                     //YOUR CODE WILL BE HERE
                     //
 
@@ -45,19 +46,23 @@
                     //step 4: refresh your page and check if the results are what you expected
 
 
-                        if( i%3 == 0 ){
+                        if( d%3 == 0 ){
                             return "blue"
                             //if a number is divisible by 3, it is blue, then this happens and nothing below this will happen
-                        }else if( i%5 == 0 && i%3 == 0 ){
+                        }else if( d%5 == 0 && d%3 == 0 ){
                             return "green"
                             //if it is divisible by both, then it is green, then this happens and nothing below this will happen
-                        }else if( i%5 !== 0 || i%3 !== 0 ){
+                        //CHANGE 2 - below instead of using || for "or", I used && for "and" because the logic here is that it is not either one, it has to be both.
+                        }else if( d%5 !== 0 && d%3 !== 0 ){
                             return "black"
                             //if the number is not divisible by either, it will be black, then this happens and nothing below this will happen
                         }else{
                             return "red"
                             //if non of the above conditions are true, it will be red
                         }
+                        
+                        
+                        
 
 
 
