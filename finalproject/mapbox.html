@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8' />
+  <title>Restaurants in Pandemic, Nov 2020</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+<script src='../d3.js'></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css" rel="stylesheet" />
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0; bottom:0; width:100%;z-index:-1; }
+    #layerToggle{z-index:999;}
+  </style>
+</head>
+<body>
+
+<style>
+  #menu {
+    background: #fff;
+    position: absolute;
+    z-index: 1;
+    top: 300px;
+    right: 10px;
+    border-radius: 3px;
+    width: 150px;
+    border: 2px solid rgba(0, 0, 0, 1);
+    font-family: 'helvetica', monospace;
+  }
+
+  #title {
+    background: #fff;
+    position: absolute;
+    font-family: 'helvetica', monospace;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 0px;
+    text-transform:uppercase;
+    border: 8px solid rgb(255, 255, 255);
+  }
+
+  #menu a {
+    font-size: 18px;
+    color: #404040;
+    display: block;
+    margin: 0;
+    padding: 0;
+    padding: 19px;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+    text-align: center;
+  }
+
+  #menu a:last-child {
+    border: none;
+  }
+
+  #menu a:hover {
+    background-color: #f8f8f8;
+    color: #404040;
+  }
+
+  #menu a.active {
+    background-color: #4661a4;
+    color: #ffffff;
+  }
+
+  #menu a.active:hover {
+    background: #272172;
+  }
+</style>
+
+<nav id="menu"></nav>
+<div id='map'></div>
+<div id='title'>  Restaurants in Pandemic, Nov 2020  </div>
+
+<script>
+
+ // Set bounds
+var bounds = [
+[-74.05, 40.695], // Southwest coordinates
+[-73.915, 40.775]  // Northeast coordinates
+];
+
+// load mapbox data
+mapboxgl.accessToken = 'pk.eyJ1IjoieXczNTYzIiwiYSI6ImNraGc0MXAzdTB2dHcyeHFwdXpsbm1scTMifQ.7nBjOVzW051AMgneu-NuQw';
+var map = new mapboxgl.Map({
+  container: 'map',//thi sis the div that you have mad above in html that you are now placing your map in
+  style: 'mapbox://styles/yw3563/ckitg42sj1vz419l3ae0m3rgl',//you will find the accessToken under "Share" in your specific map in mapbox studio
+  center: [-73.982, 40.738],//the center of the map can be set to any initial value of [lng,lat]
+  zoom: 10,//note that some layers have zoom limits - for example, streets and building footprints are not visible when zoomed out
+  maxBounds: bounds // Sets bounds as max
+});
+
+//zoom
+map.addControl(new mapboxgl.NavigationControl());
+
+//7.icons
+map.on('load', function () {
+  //Dine in data
+  map.addSource('Dinein-6r7xs1', {
+    type: 'vector',
+    url: 'mapbox://yw3563.5py7ef54'
+  });
+  map.addLayer({
+    'id': 'Dine In',
+    'type': 'circle',
+    'source': 'Dinein-6r7xs1',
+    'layout': {
+  // make layer visible by default
+  'visibility': 'visible'
+  },
+  'paint': {
+  'circle-radius': 3.7,
+  'circle-color': 'rgba(63,60,211,1)'
+  },
+  'source-layer': 'Dinein-6r7xs1'
+  });
+
+  //Temporily Closed Data
+  map.addSource('TempClosed-5wly9c', {
+    type: 'vector',
+    url: 'mapbox://yw3563.3khmsylo'
+  });
+  map.addLayer({
+    'id': 'Temporarily Closed',
+    'type': 'circle',
+    'source': 'TempClosed-5wly9c',
+    'layout': {
+      // make layer visible by default
+      'visibility': 'visible'
+    },
+    'paint': {
+      'circle-radius': 3.7,
+      'circle-color': 'rgba(220,83,86,1)'
+    },
+    'source-layer': 'TempClosed-5wly9c'
+    });
+//others
+map.addSource('others-9uf3ra', {
+      type: 'vector',
+      url: 'mapbox://yw3563.10o9sucf'
+    });
+    map.addLayer({
+      'id': 'Others',
+      'type': 'circle',
+      'source': 'others-9uf3ra',
+      'layout': {
+        // make layer visible by default
+        'visibility': 'visible'
+      },
+      'paint': {
+        'circle-radius': 3.7,
+        'circle-color': 'rgba(66,177,255,1)'
+      },
+      'source-layer': 'others-9uf3ra'
+      });
+
+    //Outdoor Seating data
+    map.addSource('OutdoorSeating-5i00h4', {
+      type: 'vector',
+      url: 'mapbox://yw3563.4qhz5kav'
+    });
+    map.addLayer({
+      'id': 'Outdoor Seating',
+      'type': 'circle',
+      'source': 'OutdoorSeating-5i00h4',
+      'layout': {
+        // make layer visible by default
+        'visibility': 'visible'
+      },
+      'paint': {
+        'circle-radius': 3.7,
+        'circle-color': 'rgba(40,206,188,1)'
+      },
+      'source-layer': 'OutdoorSeating-5i00h4'
+      });
+      // all
+
+
+var toggleableLayerIds = ['Dine In', 'Temporarily Closed', 'Outdoor Seating','Others'];
+
+for (var i = 0; i < toggleableLayerIds.length; i++) {
+  var id = toggleableLayerIds[i];
+console.log(id)
+
+  var link = document.createElement('a');
+  link.href = '#';
+  link.className = 'active';
+  link.textContent = id;
+
+  link.onclick = function (e) {
+    var clickedLayer = this.textContent;
+    e.preventDefault();
+    e.stopPropagation();
+
+    var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+// toggle layer visibility by changing the layout object's visibility property
+    if (visibility === 'visible') {
+    map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+    this.className = '';
+  } else {
+    this.className = 'active';
+    map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+  }
+  }
+  var layers = document.getElementById('menu');
+  layers.appendChild(link);
+};
+
+// Add description
+  map.addSource('places', {
+    'type': 'geojson',
+    'data': {
+      'type': 'FeatureCollection',
+      'features': [
+        {
+          'type': 'Feature',
+          'properties': {
+            'description':
+            '<strong>How could restaurants survive the winter?</strong><p>How will restaurants survive this winter? Sure, it is a question that everyone is curious about. Outdoor dining seems to be a torture in winter, and the food would be cold sooner. However, New York City releases a guidance for restaurant to better survive and provide services in this winter. To better serve their customers, restaurants can implement some out-door heaters on the sidewalk or the roadway: (1) Electric radiant heaters, (2) Natural gas radiant heaters, (3) Portable heaters fueled by propane. In addition, experts suggest expanding the area and scope of outdoor dining as well as utilizing vacant storefronts for pop-up restaurants. Many restaurants are doing delivery, there are owners who are pro-active and calling the offices, police department, fire stations, and hospitals to see if they want to order lunch or dinner.</p>',
+            'icon': 'information',
+            'title': 'What About this Winter?'
+          },
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [-74.028, 40.715]
+          }
+        },
+        {
+          'type': 'Feature',
+          'properties': {
+            'description':
+            '<strong>Overview</strong><p>This map shows a total of 1017 restaurants located in the mid-town and downtown Manhattan, New York City. COVID-19 pandemic has a great influence on restaurants and cafes. Restaurants are closing, people are losing their jobs. To survive the pandemic, restaurants implement some strategies. An important one is outdoor dining. Until the day of data collecting, 123 among the 1017 restaurants provide outdoor dining. This group takes up 12.51% of the total number. Luckily, more than half of the restaurants are still running their routine business. In this area, there are still 628 restaurants open for in-door dining, or dine in, which account for 60.77% of the total. Unfortunately, 110 restaurants choose to stop their business and temporarily close. This group accounts account for 10.54% of the total restaurants.</p>',
+            'title': 'Overview',
+            'icon': 'restaurant'
+          },
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [-74.018, 40.755]
+          }
+
+        },
+
+        {
+          'type': 'Feature',
+          'properties': {
+            'description':
+            '<strong>Closure of Indoor Dining</strong><p>To mitigate the spread of this disease, food establishments will not be permitted to offer indoor dining beginning on Monday, December 14. Food establishments that are located outside of State-designated “red zones” are still permitted to offer take-out, delivery, and outdoor dining. Food establishments that are located within State-designated “red zones” may continue to offer take-out and delivery only. </p>',
+            'title': 'Closure of Indoor Dining',
+            'icon': 'restaurant-pizza'
+          },
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [-73.967, 40.74]
+          }
+
+        }
+      ]
+    }
+});
+// add icons for description
+    map.addLayer({
+      'id': 'places',
+      'type': 'symbol',
+      'source': 'places',
+      'layout': {
+        'icon-image': '{icon}-15',
+        'icon-size': 2,
+        'icon-allow-overlap': true,
+        'text-field': ['get', 'title'],
+        'text-font': [
+          'Open Sans Semibold',
+          'Arial Unicode MS Bold'
+        ],
+        'text-offset': [0, 1.25],
+        'text-anchor': 'top'
+      },
+      'paint': {
+    "text-color": "#ffffff"
+  }
+    });
+  // on click
+    map.on('click', 'places', function (e) {
+    var coordinates = e.features[0].geometry.coordinates.slice();
+    var description = e.features[0].properties.description;
+
+
+    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+    coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+    }
+
+    new mapboxgl.Popup()
+    .setLngLat(coordinates)
+    .setHTML(description)
+    .addTo(map);
+    });
+
+    map.on('mouseenter', 'places', function () {
+    map.getCanvas().style.cursor = 'pointer';
+    });
+
+    map.on('mouseleave', 'places', function () {
+    map.getCanvas().style.cursor = '';
+    });
+
+// Add an image to use as a custom marker & a box
+//box: https://docs.mapbox.com/mapbox-gl-js/example/add-image-stretchable/
+map.loadImage(
+'https://raw.githubusercontent.com/hc3030/fall2020_data_visualization/master/restaurant/pie.jpg',
+  function (error, image) {
+      if (error) throw error;
+      map.addImage('custom-marker', image);
+//shake shack
+      map.addSource('points', {
+        'type': 'geojson',
+        'data': {
+          'type': 'FeatureCollection',
+          'features': [
+            {
+// feature for shake shack
+            'type': 'Feature',
+            'properties': {
+              'description':
+                '<strong></strong><p></p>',
+
+             },
+            'geometry': {
+              'type': 'Point',
+              'coordinates': [-73.940, 40.7102921]
+            },
+
+            }
+        ]
+      }
+
+});
+
+// Add a symbol layer for shakeshack
+map.addLayer({
+          'id': 'points',
+          'type': 'symbol',
+          'source': 'points',
+          'layout': {
+            'icon-image': 'custom-marker',
+            'icon-allow-overlap': true,
+            'icon-size': 0.25,
+            'text-field': ['get', 'title'],
+            'text-font': [
+              'Open Sans Semibold',
+              'Arial Unicode MS Bold'
+            ],
+            'text-offset': [0, 1.25],
+            'text-anchor': 'top'
+          }
+        });
+// on click
+
+  }
+)
+
+//9.layers
+});
+
+//adding buttons to work with mapbox interactions 8 - 11
+
+//8.flyto
+function flyTo(mouseData){
+    console.log(mouseData)//all the mousedata
+    //the coordinates are in this data as:
+    var lat = mouseData.lngLat.lat
+    var lng = mouseData.lngLat.lng
+
+    console.log([lat,lng])
+    //the example linked below uses basic flyto
+    //https://docs.mapbox.com/mapbox-gl-js/example/flyto/
+
+        map.flyTo({
+        center: [lng,lat],
+            zoom:14
+        });
+
+}
+
+</script>
+
+</body>
+</html>
